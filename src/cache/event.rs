@@ -3,33 +3,13 @@ use std::collections::HashSet;
 use super::{Cache, CacheUpdate};
 use crate::model::channel::{Channel, GuildChannel, Message};
 use crate::model::event::{
-    ChannelCreateEvent,
-    ChannelDeleteEvent,
-    ChannelPinsUpdateEvent,
-    ChannelUpdateEvent,
-    GuildCreateEvent,
-    GuildDeleteEvent,
-    GuildEmojisUpdateEvent,
-    GuildMemberAddEvent,
-    GuildMemberRemoveEvent,
-    GuildMemberUpdateEvent,
-    GuildMembersChunkEvent,
-    GuildRoleCreateEvent,
-    GuildRoleDeleteEvent,
-    GuildRoleUpdateEvent,
-    GuildStickersUpdateEvent,
-    GuildUnavailableEvent,
-    GuildUpdateEvent,
-    MessageCreateEvent,
-    MessageUpdateEvent,
-    PresenceUpdateEvent,
-    PresencesReplaceEvent,
-    ReadyEvent,
-    ThreadCreateEvent,
-    ThreadDeleteEvent,
-    ThreadUpdateEvent,
-    UserUpdateEvent,
-    VoiceStateUpdateEvent,
+    ChannelCreateEvent, ChannelDeleteEvent, ChannelPinsUpdateEvent, ChannelUpdateEvent,
+    GuildCreateEvent, GuildDeleteEvent, GuildEmojisUpdateEvent, GuildMemberAddEvent,
+    GuildMemberRemoveEvent, GuildMemberUpdateEvent, GuildMembersChunkEvent, GuildRoleCreateEvent,
+    GuildRoleDeleteEvent, GuildRoleUpdateEvent, GuildStickersUpdateEvent, GuildUnavailableEvent,
+    GuildUpdateEvent, MessageCreateEvent, MessageUpdateEvent, PresenceUpdateEvent,
+    PresencesReplaceEvent, ReadyEvent, ThreadCreateEvent, ThreadDeleteEvent, ThreadUpdateEvent,
+    UserUpdateEvent, VoiceStateUpdateEvent,
 };
 use crate::model::guild::{Guild, Member, Role};
 use crate::model::user::{CurrentUser, OnlineStatus};
@@ -57,21 +37,25 @@ impl CacheUpdate for ChannelCreateEvent {
                     return Some(Channel::Private(channel.clone()));
                 }
 
-                let id = {
-                    let user_id = {
-                        cache.update_user_entry(&channel.recipient);
+                for recipient in &mut channel.recipients {
+                    let id = {
+                        let user_id = {
+                            cache.update_user_entry(recipient);
 
-                        channel.recipient.id
+                            recipient.id
+                        };
+
+                        if let Some(u) = cache.users.get(&user_id) {
+                            *recipient = u.clone();
+                        }
+
+                        channel.id
                     };
 
-                    if let Some(u) = cache.users.get(&user_id) {
-                        channel.recipient = u.clone();
-                    }
+                    // result = cache.private_channels.insert(id, channel).map(Channel::Private);
+                }
 
-                    channel.id
-                };
-
-                cache.private_channels.insert(id, channel.clone()).map(Channel::Private)
+                cache.private_channels.insert(channel.id, channel.clone()).map(Channel::Private)
             },
             Channel::Category(ref category) => {
                 let (guild_id, channel_id) = (category.guild_id, category.id);
@@ -311,20 +295,23 @@ impl CacheUpdate for GuildMemberUpdateEvent {
             };
 
             if item.is_none() {
-                guild.members.insert(self.user.id, Member {
-                    deaf: false,
-                    guild_id: self.guild_id,
-                    joined_at: Some(self.joined_at),
-                    mute: false,
-                    nick: self.nick.clone(),
-                    roles: self.roles.clone(),
-                    user: self.user.clone(),
-                    pending: self.pending,
-                    premium_since: self.premium_since,
-                    permissions: None,
-                    avatar: self.avatar.clone(),
-                    communication_disabled_until: self.communication_disabled_until,
-                });
+                guild.members.insert(
+                    self.user.id,
+                    Member {
+                        deaf: false,
+                        guild_id: self.guild_id,
+                        joined_at: Some(self.joined_at),
+                        mute: false,
+                        nick: self.nick.clone(),
+                        roles: self.roles.clone(),
+                        user: self.user.clone(),
+                        pending: self.pending,
+                        premium_since: self.premium_since,
+                        permissions: None,
+                        avatar: self.avatar.clone(),
+                        communication_disabled_until: self.communication_disabled_until,
+                    },
+                );
             }
 
             item

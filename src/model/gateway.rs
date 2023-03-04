@@ -385,14 +385,7 @@ pub enum ActivityType {
     Unknown = !0,
 }
 
-enum_number!(ActivityType {
-    Playing,
-    Streaming,
-    Listening,
-    Watching,
-    Custom,
-    Competing
-});
+enum_number!(ActivityType { Playing, Streaming, Listening, Watching, Custom, Competing });
 
 impl Default for ActivityType {
     fn default() -> Self {
@@ -522,7 +515,7 @@ pub struct Presence {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[non_exhaustive]
 pub struct Ready {
-    pub application: PartialCurrentApplicationInfo,
+    pub application: Option<PartialCurrentApplicationInfo>,
     pub guilds: Vec<UnavailableGuild>,
     #[serde(default, with = "presences")]
     pub presences: HashMap<UserId, Presence>,

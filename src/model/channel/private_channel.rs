@@ -32,8 +32,8 @@ pub struct PrivateChannel {
     #[serde(rename = "type")]
     pub kind: ChannelType,
     /// The recipient to the private channel.
-    #[serde(with = "single_recipient", rename = "recipients")]
-    pub recipient: User,
+    // #[serde(with = "single_recipient", rename = "recipients")]
+    pub recipients: Vec<User>,
 }
 
 #[cfg(feature = "model")]
@@ -214,7 +214,7 @@ impl PrivateChannel {
     /// Returns "DM with $username#discriminator".
     #[must_use]
     pub fn name(&self) -> String {
-        format!("DM with {}", self.recipient.tag())
+        format!("DM with {}", self.recipients.iter().map(User::tag).collect::<Vec<_>>().join(", "))
     }
 
     /// Gets the list of [`User`]s who have reacted to a [`Message`] with a
@@ -398,6 +398,7 @@ impl PrivateChannel {
 impl fmt::Display for PrivateChannel {
     /// Formats the private channel, displaying the recipient's username.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.recipient.name)
+        f.write_str(&self.recipients.iter().map(|u| u.name.as_str()).collect::<Vec<_>>().join(", "))
+        // f.write_str(&self.recipients.name)
     }
 }

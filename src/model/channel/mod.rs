@@ -246,10 +246,16 @@ impl<'de> Deserialize<'de> for Channel {
             1 => from_value::<PrivateChannel>(Value::from(v))
                 .map(Channel::Private)
                 .map_err(DeError::custom),
+            3 => from_value::<PrivateChannel>(Value::from(v))
+                .map(Channel::Private)
+                .map_err(DeError::custom),
             4 => from_value::<ChannelCategory>(Value::from(v))
                 .map(Channel::Category)
                 .map_err(DeError::custom),
-            _ => Err(DeError::custom("Unknown channel type")),
+            _ => {
+                // Err(DeError::custom(format!("Unknown channel type: {:?}", kind)))
+                Err(DeError::custom("Unknown channel type"))
+            },
         }
     }
 }
@@ -278,7 +284,10 @@ impl fmt::Display for Channel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Guild(ch) => fmt::Display::fmt(&ch.id.mention(), f),
-            Self::Private(ch) => fmt::Display::fmt(&ch.recipient.name, f),
+            Self::Private(ch) => fmt::Display::fmt(
+                &ch.recipients.iter().map(|u| u.name.as_str()).collect::<Vec<_>>().join(", "),
+                f,
+            ),
             Self::Category(ch) => fmt::Display::fmt(&ch.name, f),
         }
     }
@@ -297,6 +306,7 @@ pub enum ChannelType {
     Private = 1,
     /// An indicator that the channel is a voice [`GuildChannel`].
     Voice = 2,
+    Group = 3,
     /// An indicator that the channel is the channel of a [`ChannelCategory`].
     Category = 4,
     /// An indicator that the channel is a `NewsChannel`.
@@ -325,6 +335,7 @@ pub enum ChannelType {
 enum_number!(ChannelType {
     Text,
     Private,
+    Group,
     Voice,
     Category,
     News,
@@ -345,6 +356,7 @@ impl ChannelType {
             Self::Private => "private",
             Self::Text => "text",
             Self::Voice => "voice",
+            Self::Group => "group",
             Self::Category => "category",
             Self::News => "news",
             Self::NewsThread => "news_thread",
@@ -392,11 +404,7 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
             _ => return Err(DeError::custom("Unknown PermissionOverwriteType")),
         };
 
-        Ok(PermissionOverwrite {
-            allow: data.allow,
-            deny: data.deny,
-            kind,
-        })
+        Ok(PermissionOverwrite { allow: data.allow, deny: data.deny, kind })
     }
 }
 
@@ -557,7 +565,7 @@ mod test {
                 last_message_id: None,
                 last_pin_timestamp: None,
                 kind: ChannelType::Private,
-                recipient: User {
+                recipients: vec![User {
                     id: UserId(2),
                     avatar: None,
                     bot: false,
@@ -567,7 +575,7 @@ mod test {
                     banner: None,
                     accent_colour: None,
                     member: None,
-                },
+                }],
             }
         }
 

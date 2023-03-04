@@ -8,13 +8,8 @@ use tracing::{debug, error, info, instrument, trace, warn};
 use url::Url;
 
 use super::{
-    ConnectionStage,
-    CurrentPresence,
-    GatewayError,
-    ReconnectType,
-    ShardAction,
-    WebSocketGatewayClientExt,
-    WsStream,
+    ConnectionStage, CurrentPresence, GatewayError, ReconnectType, ShardAction,
+    WebSocketGatewayClientExt, WsStream,
 };
 use crate::client::bridge::gateway::ChunkGuildFilter;
 use crate::constants::{self, close_codes};
@@ -332,7 +327,9 @@ impl Shard {
                 self.stage = ConnectionStage::Connected;
 
                 if let Some(ref http) = self.http {
-                    http.set_application_id(ready.ready.application.id.0);
+                    if let Some(application) = &ready.ready.application {
+                        http.set_application_id(application.id.0);
+                    }
                 }
             },
             Event::Resumed(_) => {

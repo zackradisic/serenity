@@ -17,10 +17,7 @@ use crate::cache::Cache;
 use crate::client::bridge::gateway::ShardMessenger;
 #[cfg(feature = "collector")]
 use crate::collector::{
-    CollectReaction,
-    CollectReply,
-    MessageCollectorBuilder,
-    ReactionCollectorBuilder,
+    CollectReaction, CollectReply, MessageCollectorBuilder, ReactionCollectorBuilder,
 };
 #[cfg(feature = "model")]
 use crate::http::GuildPagination;
@@ -1121,7 +1118,7 @@ impl UserId {
                 for channel_entry in cache.private_channels().iter() {
                     let channel = channel_entry.value();
 
-                    if channel.recipient.id == self {
+                    if channel.recipients[0].id == self {
                         return Ok(channel.clone());
                     }
                 }
@@ -1321,62 +1318,53 @@ mod test {
             discriminator: Option<u16>,
         }
 
-        let user = User {
-            discriminator: 123,
-        };
-        assert_tokens(&user, &[
-            Token::Struct {
-                name: "User",
-                len: 1,
-            },
-            Token::Str("discriminator"),
-            Token::Str("0123"),
-            Token::StructEnd,
-        ]);
-        assert_de_tokens(&user, &[
-            Token::Struct {
-                name: "User",
-                len: 1,
-            },
-            Token::Str("discriminator"),
-            Token::U16(123),
-            Token::StructEnd,
-        ]);
+        let user = User { discriminator: 123 };
+        assert_tokens(
+            &user,
+            &[
+                Token::Struct { name: "User", len: 1 },
+                Token::Str("discriminator"),
+                Token::Str("0123"),
+                Token::StructEnd,
+            ],
+        );
+        assert_de_tokens(
+            &user,
+            &[
+                Token::Struct { name: "User", len: 1 },
+                Token::Str("discriminator"),
+                Token::U16(123),
+                Token::StructEnd,
+            ],
+        );
 
-        let user = UserOpt {
-            discriminator: Some(123),
-        };
-        assert_tokens(&user, &[
-            Token::Struct {
-                name: "UserOpt",
-                len: 1,
-            },
-            Token::Str("discriminator"),
-            Token::Some,
-            Token::Str("0123"),
-            Token::StructEnd,
-        ]);
-        assert_de_tokens(&user, &[
-            Token::Struct {
-                name: "UserOpt",
-                len: 1,
-            },
-            Token::Str("discriminator"),
-            Token::Some,
-            Token::U16(123),
-            Token::StructEnd,
-        ]);
+        let user = UserOpt { discriminator: Some(123) };
+        assert_tokens(
+            &user,
+            &[
+                Token::Struct { name: "UserOpt", len: 1 },
+                Token::Str("discriminator"),
+                Token::Some,
+                Token::Str("0123"),
+                Token::StructEnd,
+            ],
+        );
+        assert_de_tokens(
+            &user,
+            &[
+                Token::Struct { name: "UserOpt", len: 1 },
+                Token::Str("discriminator"),
+                Token::Some,
+                Token::U16(123),
+                Token::StructEnd,
+            ],
+        );
 
-        let user_no_discriminator = UserOpt {
-            discriminator: None,
-        };
-        assert_tokens(&user_no_discriminator, &[
-            Token::Struct {
-                name: "UserOpt",
-                len: 0,
-            },
-            Token::StructEnd,
-        ]);
+        let user_no_discriminator = UserOpt { discriminator: None };
+        assert_tokens(
+            &user_no_discriminator,
+            &[Token::Struct { name: "UserOpt", len: 0 }, Token::StructEnd],
+        );
     }
 
     #[cfg(feature = "model")]
@@ -1405,10 +1393,7 @@ mod test {
 
         #[test]
         fn default_avatars() {
-            let mut user = User {
-                discriminator: 0,
-                ..Default::default()
-            };
+            let mut user = User { discriminator: 0, ..Default::default() };
 
             assert!(user.default_avatar_url().ends_with("0.png"));
             user.discriminator = 1;

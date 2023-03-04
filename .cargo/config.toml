@@ -1,2 +1,2 @@
-[build]
-rustflags = ["-C", "target-cpu=haswell"]
+# [build]
+# rustflags = ["-C", "target-cpu=haswell"]
