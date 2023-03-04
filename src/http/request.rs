@@ -1,12 +1,7 @@
 use std::borrow::Cow;
 
 use reqwest::header::{
-    HeaderMap as Headers,
-    HeaderValue,
-    AUTHORIZATION,
-    CONTENT_LENGTH,
-    CONTENT_TYPE,
-    USER_AGENT,
+    HeaderMap as Headers, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT,
 };
 use reqwest::{Client, RequestBuilder as ReqwestRequestBuilder, Url};
 use tracing::instrument;
@@ -27,12 +22,7 @@ pub struct RequestBuilder<'a> {
 impl<'a> RequestBuilder<'a> {
     #[must_use]
     pub fn new(route_info: RouteInfo<'a>) -> Self {
-        Self {
-            body: None,
-            multipart: None,
-            headers: None,
-            route: route_info,
-        }
+        Self { body: None, multipart: None, headers: None, route: route_info }
     }
 
     #[must_use]
@@ -76,19 +66,9 @@ pub struct Request<'a> {
 impl<'a> Request<'a> {
     #[must_use]
     pub fn new(builder: RequestBuilder<'a>) -> Self {
-        let RequestBuilder {
-            body,
-            multipart,
-            headers,
-            route,
-        } = builder;
+        let RequestBuilder { body, multipart, headers, route } = builder;
 
-        Self {
-            body,
-            multipart,
-            headers,
-            route,
-        }
+        Self { body, multipart, headers, route }
     }
 
     #[instrument(skip(token))]
